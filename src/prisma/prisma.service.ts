@@ -8,6 +8,7 @@ export class PrismaService extends PrismaClient implements OnModuleDestroy {
   private connectionPromise: Promise<void> | null = null;
 
   constructor() {
+    console.log('PRISMA INSTANCE FILE =', __filename);
     console.log('PRISMA INIT URL =', process.env.DATABASE_URL);
     super({
       datasources: {
