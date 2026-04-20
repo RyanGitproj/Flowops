@@ -12,7 +12,8 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Build (prisma generate moved to runtime to use correct DATABASE_URL)
+# Generate Prisma client and build
+RUN npx prisma generate
 RUN npm run build
 
 # ─── Production stage ──────────────────────────────────────────
