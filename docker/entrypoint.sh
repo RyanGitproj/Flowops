@@ -14,17 +14,23 @@ wait_for_postgres() {
   fi
 
   # Extract host and port from DATABASE_URL
+  # Handle both formats: postgresql://user:pass@host:port/db and postgresql://user:pass@host/db (Render uses no port)
   DB_HOST=$(echo $DATABASE_URL | sed -n 's/.*@\([^:]*\):.*/\1/p')
   DB_PORT=$(echo $DATABASE_URL | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
 
-  # Fail if host or port cannot be extracted (no localhost fallback)
+  # If port not found, try extracting host without port and default to 5432
   if [ -z "$DB_HOST" ]; then
-    echo "❌ Cannot extract host from DATABASE_URL: $DATABASE_URL"
-    exit 1
+    DB_HOST=$(echo $DATABASE_URL | sed -n 's/.*@\([^/]*\)\/.*/\1/p')
   fi
 
+  # Default to PostgreSQL port 5432 if not specified
   if [ -z "$DB_PORT" ]; then
-    echo "❌ Cannot extract port from DATABASE_URL: $DATABASE_URL"
+    DB_PORT=5432
+  fi
+
+  # Fail if host cannot be extracted
+  if [ -z "$DB_HOST" ]; then
+    echo "❌ Cannot extract host from DATABASE_URL: $DATABASE_URL"
     exit 1
   fi
 
