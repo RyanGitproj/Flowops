@@ -8,8 +8,14 @@ export class PrismaService extends PrismaClient implements OnModuleDestroy {
   private connectionPromise: Promise<void> | null = null;
 
   constructor() {
-    super();
-    console.log('PRISMA ENV URL =', process.env.DATABASE_URL);
+    console.log('PRISMA INIT URL =', process.env.DATABASE_URL);
+    super({
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
+    });
     // Start connection in background without blocking
     this.connectInBackground();
   }
