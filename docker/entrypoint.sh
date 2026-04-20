@@ -6,19 +6,28 @@ echo "🚀 Starting FlowOps API entrypoint..."
 # Function to wait for PostgreSQL
 wait_for_postgres() {
   echo "⏳ Waiting for PostgreSQL to be ready..."
-  
+
+  # Check if DATABASE_URL is set
+  if [ -z "$DATABASE_URL" ]; then
+    echo "❌ DATABASE_URL environment variable is not set"
+    exit 1
+  fi
+
   # Extract host and port from DATABASE_URL
   DB_HOST=$(echo $DATABASE_URL | sed -n 's/.*@\([^:]*\):.*/\1/p')
   DB_PORT=$(echo $DATABASE_URL | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
-  
+
+  # Fail if host or port cannot be extracted (no localhost fallback)
   if [ -z "$DB_HOST" ]; then
-    DB_HOST="localhost"
+    echo "❌ Cannot extract host from DATABASE_URL: $DATABASE_URL"
+    exit 1
   fi
-  
+
   if [ -z "$DB_PORT" ]; then
-    DB_PORT="5432"
+    echo "❌ Cannot extract port from DATABASE_URL: $DATABASE_URL"
+    exit 1
   fi
-  
+
   echo "📍 Connecting to PostgreSQL at $DB_HOST:$DB_PORT"
   
   # Wait for PostgreSQL to be ready with retry logic
