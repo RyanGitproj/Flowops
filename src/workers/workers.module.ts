@@ -15,12 +15,30 @@ import { FLOWOPS_QUEUE } from '../events/events.constants';
         // Support both REDIS_URL (Render) and REDIS_HOST/REDIS_PORT (local)
         const redisUrl = config.get('REDIS_URL');
         if (redisUrl) {
-          return { redis: redisUrl };
+          return {
+            redis: redisUrl,
+            enableReadyCheck: false,
+            connection: {
+              maxRetriesPerRequest: 3,
+              retryStrategy: (times) => {
+                const delay = Math.min(times * 50, 2000);
+                return delay;
+              },
+            },
+          };
         }
         return {
           redis: {
             host: config.get('REDIS_HOST', 'localhost'),
             port: parseInt(config.get('REDIS_PORT', '6379'), 10),
+          },
+          enableReadyCheck: false,
+          connection: {
+            maxRetriesPerRequest: 3,
+            retryStrategy: (times) => {
+              const delay = Math.min(times * 50, 2000);
+              return delay;
+            },
           },
         };
       },
