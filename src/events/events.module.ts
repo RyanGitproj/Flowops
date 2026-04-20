@@ -10,16 +10,29 @@ import { FLOWOPS_QUEUE } from './events.constants';
   imports: [
     BullModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (config: ConfigService) => ({
-        redis: {
-          host: config.get('REDIS_HOST', 'localhost'),
-          port: parseInt(config.get('REDIS_PORT', '6379'), 10),
-        },
-        defaultJobOptions: {
-          attempts: 3,
-          backoff: { type: 'exponential', delay: 2000 },
-        },
-      }),
+      useFactory: (config: ConfigService) => {
+        // Support both REDIS_URL (Render) and REDIS_HOST/REDIS_PORT (local)
+        const redisUrl = config.get('REDIS_URL');
+        if (redisUrl) {
+          return {
+            redis: redisUrl,
+            defaultJobOptions: {
+              attempts: 3,
+              backoff: { type: 'exponential', delay: 2000 },
+            },
+          };
+        }
+        return {
+          redis: {
+            host: config.get('REDIS_HOST', 'localhost'),
+            port: parseInt(config.get('REDIS_PORT', '6379'), 10),
+          },
+          defaultJobOptions: {
+            attempts: 3,
+            backoff: { type: 'exponential', delay: 2000 },
+          },
+        };
+      },
       inject: [ConfigService],
     }),
     BullModule.registerQueue({ name: FLOWOPS_QUEUE }),

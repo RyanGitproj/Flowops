@@ -11,10 +11,16 @@ export class HealthController {
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
   ) {
-    this.redisClient = new Redis({
-      host: this.config.get('REDIS_HOST', 'localhost'),
-      port: parseInt(this.config.get('REDIS_PORT', '6379'), 10),
-    });
+    // Support both REDIS_URL (Render) and REDIS_HOST/REDIS_PORT (local)
+    const redisUrl = this.config.get('REDIS_URL');
+    if (redisUrl) {
+      this.redisClient = new Redis(redisUrl);
+    } else {
+      this.redisClient = new Redis({
+        host: this.config.get('REDIS_HOST', 'localhost'),
+        port: parseInt(this.config.get('REDIS_PORT', '6379'), 10),
+      });
+    }
   }
 
   @Get()
