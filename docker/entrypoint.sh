@@ -22,7 +22,7 @@ wait_for_postgres() {
   echo "📍 Connecting to PostgreSQL at $DB_HOST:$DB_PORT"
   
   # Wait for PostgreSQL to be ready with retry logic
-  MAX_RETRIES=30
+  MAX_RETRIES=60
   RETRY_COUNT=0
   
   while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
