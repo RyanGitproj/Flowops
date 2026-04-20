@@ -7,7 +7,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // ─── Health check endpoint (root level for Render) ────────────────
-  app.get('/health', (req, res) => {
+  const httpAdapter = app.getHttpAdapter();
+  httpAdapter.get('/health', (_req, res) => {
     res.json({ status: 'ok' });
   });
 
