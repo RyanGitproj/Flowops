@@ -21,6 +21,11 @@ export class HealthController {
         port: parseInt(this.config.get('REDIS_PORT', '6379'), 10),
       });
     }
+
+    // Suppress Redis connection errors (Redis is optional)
+    this.redisClient.on('error', (err) => {
+      // Silently ignore Redis errors - connection is optional
+    });
   }
 
   @Get()
