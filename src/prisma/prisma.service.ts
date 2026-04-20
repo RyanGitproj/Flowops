@@ -1,15 +1,16 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+export class PrismaService extends PrismaClient implements OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
-  private readonly MAX_RETRIES = 30;
-  private readonly INITIAL_RETRY_DELAY = 2000; // 2 seconds
+  private isConnecting = false;
+  private connectionPromise: Promise<void> | null = null;
 
-  async onModuleInit() {
-    await this.connectWithRetry();
-    this.logger.log('✅ Database connected');
+  constructor() {
+    super();
+    // Start connection in background without blocking
+    this.connectInBackground();
   }
 
   async onModuleDestroy() {
@@ -17,23 +18,37 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     this.logger.log('Database disconnected');
   }
 
-  private async connectWithRetry(): Promise<void> {
-    let retryCount = 0;
-    let delay = this.INITIAL_RETRY_DELAY;
+  private connectInBackground(): void {
+    if (this.isConnecting) return;
+    this.isConnecting = true;
 
-    while (retryCount < this.MAX_RETRIES) {
+    this.connectionPromise = this.connectWithRetry().catch((error) => {
+      this.logger.error('❌ Background database connection failed', error.message);
+      this.isConnecting = false;
+    });
+  }
+
+  private async connectWithRetry(): Promise<void> {
+    const MAX_RETRIES = 30;
+    const INITIAL_RETRY_DELAY = 2000; // 2 seconds
+    let retryCount = 0;
+    let delay = INITIAL_RETRY_DELAY;
+
+    while (retryCount < MAX_RETRIES) {
       try {
         await this.$connect();
+        this.logger.log('✅ Database connected');
         return;
       } catch (error) {
         retryCount++;
-        if (retryCount >= this.MAX_RETRIES) {
-          this.logger.error(`❌ Failed to connect to database after ${this.MAX_RETRIES} attempts`);
-          throw error;
+        if (retryCount >= MAX_RETRIES) {
+          this.logger.warn(`⏳ Database not ready after ${MAX_RETRIES} attempts, will retry on next query`);
+          this.isConnecting = false;
+          return;
         }
 
         this.logger.warn(
-          `⏳ Database connection attempt ${retryCount}/${this.MAX_RETRIES} failed. Retrying in ${delay}ms...`,
+          `⏳ Database connection attempt ${retryCount}/${MAX_RETRIES} failed. Retrying in ${delay}ms...`,
         );
         await this.sleep(delay);
         delay = Math.min(delay * 2, 30000); // Exponential backoff, max 30s
@@ -43,5 +58,14 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   private sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  async ensureConnected(): Promise<void> {
+    if (this.connectionPromise) {
+      await this.connectionPromise;
+    }
+    if (!this.isConnecting) {
+      await this.connectWithRetry();
+    }
   }
 }
