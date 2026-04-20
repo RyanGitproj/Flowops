@@ -1,0 +1,73 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events Event[]
+
+  @@map("users")
+}
+
+model Event {
+  id        String      @id @default(uuid())
+  type      EventType
+  payload   Json
+  userId    String?
+  status    EventStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  user User? @relation(fields: [userId], references: [id])
+  logs EventLog[]
+
+  @@map("events")
+}
+
+model EventLog {
+  id          String     @id @default(uuid())
+  eventId     String
+  status      LogStatus
+  message     String
+  processorId String?
+  duration    Int?       // ms
+  createdAt   DateTime   @default(now())
+
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@map("event_logs")
+}
+
+enum EventType {
+  USER_REGISTERED
+  PROJECT_CREATED
+  TASK_CREATED
+  TASK_OVERDUE
+  MEETING_CREATED
+}
+
+enum EventStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+}
+
+enum LogStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+}
