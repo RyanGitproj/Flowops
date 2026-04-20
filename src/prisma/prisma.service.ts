@@ -65,13 +65,4 @@ export class PrismaService extends PrismaClient implements OnModuleDestroy {
   private sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
-
-  async ensureConnected(): Promise<void> {
-    if (this.connectionPromise) {
-      await this.connectionPromise;
-    }
-    if (!this.isConnecting) {
-      await this.connectWithRetry();
-    }
-  }
 }

@@ -23,7 +23,7 @@ export class HealthController {
     }
 
     // Suppress Redis connection errors (Redis is optional)
-    this.redisClient.on('error', (err) => {
+    this.redisClient.on('error', (_err) => {
       // Silently ignore Redis errors - connection is optional
     });
   }
