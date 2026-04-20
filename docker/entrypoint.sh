@@ -3,6 +3,11 @@ set -e
 
 echo "🚀 Starting FlowOps API entrypoint..."
 
+# Generate Prisma client at runtime with correct DATABASE_URL
+echo "📦 Generating Prisma client..."
+npx prisma generate
+echo "✅ Prisma client generated"
+
 # Function to wait for PostgreSQL
 wait_for_postgres() {
   echo "⏳ Waiting for PostgreSQL to be ready..."
