@@ -58,6 +58,10 @@ wait_for_postgres() {
 # Wait for PostgreSQL
 wait_for_postgres
 
+# Run Prisma migrations
+echo "🔧 Running Prisma migrations..."
+npx prisma migrate deploy
+
 # Start the application
 echo "🚀 Starting NestJS application..."
 exec node dist/src/main
