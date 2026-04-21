@@ -41,6 +41,7 @@ async function bootstrap() {
         'copy the token and click "Authorize" 🔐',
     )
     .setVersion('1.0')
+    .setContact('Tsioritiana Ryan', '', '')
     .addBearerAuth()
     .addTag('Auth', 'Register & login')
     .addTag('Events', 'Publish business events')
