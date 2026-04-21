@@ -19,14 +19,15 @@ import { FLOWOPS_QUEUE } from '../events/events.constants';
             redis: {
               host: new URL(redisUrl).hostname,
               port: parseInt(new URL(redisUrl).port, 10) || 6379,
-              connectTimeout: 5000,
+              connectTimeout: 30000,
               lazyConnect: false,
+              tls: redisUrl.startsWith('rediss://') ? {} : undefined,
             },
             enableReadyCheck: false,
             connection: {
-              maxRetriesPerRequest: 3,
+              maxRetriesPerRequest: 5,
               retryStrategy: (times) => {
-                const delay = Math.min(times * 50, 2000);
+                const delay = Math.min(times * 100, 5000);
                 return delay;
               },
             },
