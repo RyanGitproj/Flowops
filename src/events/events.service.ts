@@ -2,8 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { EventsRepository } from './events.repository';
-import { CreateEventDto } from './events.dto';
-import { FLOWOPS_QUEUE } from './events.constants';
+import { EventType, FLOWOPS_QUEUE } from './events.constants';
 
 @Injectable()
 export class EventsService {
@@ -14,12 +13,12 @@ export class EventsService {
     @InjectQueue(FLOWOPS_QUEUE) private queue: Queue,
   ) {}
 
-  async publish(dto: CreateEventDto) {
+  async publish(type: EventType, payload: Record<string, any>, userId?: string) {
     // 1. Persist event to DB
     const event = await this.eventsRepository.create({
-      type: dto.type as any,
-      payload: dto.payload,
-      userId: dto.userId,
+      type,
+      payload,
+      userId,
     });
 
     // 2. Enqueue for async processing

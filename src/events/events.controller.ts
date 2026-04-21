@@ -7,6 +7,7 @@ import {
   Query,
   UseGuards,
   ParseUUIDPipe,
+  Request,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -33,8 +34,10 @@ export class EventsController {
       'Persists the event to the database and enqueues it for async processing via BullMQ.',
   })
   @ApiResponse({ status: 201, description: 'Event published and queued' })
-  publish(@Body() dto: CreateEventDto) {
-    return this.eventsService.publish(dto);
+  publish(@Body() dto: CreateEventDto, @Request() req) {
+    // Use authenticated user's userId instead of request body
+    const userId = req.user?.id;
+    return this.eventsService.publish(dto.type, dto.payload, userId);
   }
 
   @Get()

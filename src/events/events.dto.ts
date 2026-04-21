@@ -1,11 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsEnum,
-  IsObject,
-  IsOptional,
-  IsString,
-  IsNotEmpty,
-} from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum, IsObject } from 'class-validator';
 import { EventType } from './events.constants';
 
 export class CreateEventDto {
@@ -28,13 +22,4 @@ export class CreateEventDto {
   })
   @IsObject()
   payload: Record<string, any>;
-
-  @ApiPropertyOptional({
-    example: 'user-uuid-here',
-    description: 'Optional userId to associate this event with',
-  })
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  userId?: string;
 }
