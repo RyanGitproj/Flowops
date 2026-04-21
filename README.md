@@ -136,6 +136,6 @@ Documentation API interactive disponible à : http://localhost:3000/docs
 
 © 2026 Tsioritiana Ryan
 
-Contact : ryan@example.com
+Contact : tsioritianaryan@gmail.com
 
 Ce projet est fourni à des fins éducatives et de démonstration.
