@@ -36,7 +36,7 @@ import { FLOWOPS_QUEUE } from '../events/events.constants';
           redis: {
             host: config.get('REDIS_HOST', 'localhost'),
             port: parseInt(config.get('REDIS_PORT', '6379'), 10),
-            connectTimeout: 5000,
+            connectTimeout: 10000,
             lazyConnect: false,
           },
           enableReadyCheck: false,
