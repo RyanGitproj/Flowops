@@ -15,13 +15,8 @@ import { FLOWOPS_QUEUE } from './events.constants';
         const redisUrl = config.get('REDIS_URL');
         if (redisUrl) {
           return {
-            redis: {
-              host: new URL(redisUrl).hostname,
-              port: parseInt(new URL(redisUrl).port, 10) || 6379,
-              connectTimeout: 30000,
-              lazyConnect: false,
-              tls: redisUrl.startsWith('rediss://') ? {} : undefined,
-            },
+            redis: redisUrl,
+            connectTimeout: 30000,
             enableReadyCheck: false,
             connection: {
               maxRetriesPerRequest: 5,
