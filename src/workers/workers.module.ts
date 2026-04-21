@@ -56,8 +56,4 @@ import { FLOWOPS_QUEUE } from '../events/events.constants';
     LogsRepository,
   ],
 })
-export class WorkersModule {
-  constructor() {
-    console.log('🤖 WorkersModule loaded - BullMQ worker should be starting');
-  }
-}
+export class WorkersModule {}

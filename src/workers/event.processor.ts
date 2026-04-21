@@ -20,9 +20,7 @@ export class EventProcessor {
     private eventsRepository: EventsRepository,
     private logsRepository: LogsRepository,
     private automationEngine: AutomationEngine,
-  ) {
-    this.logger.log('🤖 EventProcessor initialized and ready to process events');
-  }
+  ) {}
 
   @Process('process-event')
   async handleEvent(job: Job<EventJobData>) {

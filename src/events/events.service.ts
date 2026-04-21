@@ -15,17 +15,14 @@ export class EventsService {
 
   async publish(type: EventType, payload: Record<string, any>, userId?: string) {
     try {
-      this.logger.log(`📝 Step 1: Creating event in database - type=${type} userId=${userId}`);
       // 1. Persist event to DB
       const event = await this.eventsRepository.create({
         type,
         payload,
         userId,
       });
-      this.logger.log(`✅ Step 1 complete: Event created with id=${event.id}`);
 
       // 2. Enqueue for async processing
-      this.logger.log(`📤 Step 2: Adding job to queue - eventId=${event.id}`);
       const job = await this.queue.add(
         'process-event',
         { eventId: event.id, type: event.type, payload: event.payload },
@@ -36,7 +33,6 @@ export class EventsService {
           removeOnFail: false,
         },
       );
-      this.logger.log(`✅ Step 2 complete: Job added to queue - jobId=${job.id}`);
 
       return {
         event,
@@ -44,7 +40,7 @@ export class EventsService {
         message: 'Event published and queued for processing',
       };
     } catch (error) {
-      this.logger.error(`❌ Failed to publish event: type=${type} userId=${userId}`, error);
+      this.logger.error(`Failed to publish event: type=${type} userId=${userId}`, error);
       throw error;
     }
   }
