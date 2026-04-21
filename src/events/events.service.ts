@@ -14,43 +14,57 @@ export class EventsService {
   ) {}
 
   async publish(type: EventType, payload: Record<string, any>, userId?: string) {
-    // 1. Persist event to DB
-    const event = await this.eventsRepository.create({
-      type,
-      payload,
-      userId,
-    });
+    try {
+      // 1. Persist event to DB
+      const event = await this.eventsRepository.create({
+        type,
+        payload,
+        userId,
+      });
 
-    // 2. Enqueue for async processing
-    const job = await this.queue.add(
-      'process-event',
-      { eventId: event.id, type: event.type, payload: event.payload },
-      {
-        attempts: 3,
-        backoff: { type: 'exponential', delay: 2000 },
-        removeOnComplete: false,
-        removeOnFail: false,
-      },
-    );
+      // 2. Enqueue for async processing
+      const job = await this.queue.add(
+        'process-event',
+        { eventId: event.id, type: event.type, payload: event.payload },
+        {
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 2000 },
+          removeOnComplete: false,
+          removeOnFail: false,
+        },
+      );
 
-    this.logger.log(
-      `📤 Event published | type=${event.type} | id=${event.id} | jobId=${job.id}`,
-    );
-
-    return {
-      event,
-      job: { id: job.id, queue: FLOWOPS_QUEUE },
-      message: 'Event published and queued for processing',
-    };
+      return {
+        event,
+        job: { id: job.id, queue: FLOWOPS_QUEUE },
+        message: 'Event published and queued for processing',
+      };
+    } catch (error) {
+      this.logger.error(`Failed to publish event: type=${type} userId=${userId}`, error);
+      throw error;
+    }
   }
 
   async findAll(page?: number, limit?: number) {
-    return this.eventsRepository.findAll(page, limit);
+    try {
+      return await this.eventsRepository.findAll(page, limit);
+    } catch (error) {
+      this.logger.error(`Failed to fetch events: page=${page} limit=${limit}`, error);
+      throw error;
+    }
   }
 
   async findById(id: string) {
-    const event = await this.eventsRepository.findById(id);
-    if (!event) throw new NotFoundException(`Event ${id} not found`);
-    return event;
+    try {
+      const event = await this.eventsRepository.findById(id);
+      if (!event) {
+        throw new NotFoundException(`Event ${id} not found`);
+      }
+      return event;
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error(`Failed to fetch event by id: ${id}`, error);
+      throw error;
+    }
   }
 }

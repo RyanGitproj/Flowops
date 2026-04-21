@@ -1,20 +1,37 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { LogsRepository } from './logs.repository';
 import { LogStatus } from '@prisma/client';
 
 @Injectable()
 export class LogsService {
+  private readonly logger = new Logger(LogsService.name);
+
   constructor(private logsRepository: LogsRepository) {}
 
-  findAll(page = 1, limit = 20, eventId?: string, status?: LogStatus) {
-    return this.logsRepository.findAll({ page, limit, eventId, status });
+  async findAll(page = 1, limit = 20, eventId?: string, status?: LogStatus) {
+    try {
+      return await this.logsRepository.findAll({ page, limit, eventId, status });
+    } catch (error) {
+      this.logger.error(`Failed to fetch logs: page=${page} limit=${limit}`, error);
+      throw error;
+    }
   }
 
-  findByEvent(eventId: string) {
-    return this.logsRepository.findByEventId(eventId);
+  async findByEvent(eventId: string) {
+    try {
+      return await this.logsRepository.findByEventId(eventId);
+    } catch (error) {
+      this.logger.error(`Failed to fetch logs for eventId: ${eventId}`, error);
+      throw error;
+    }
   }
 
-  getStats() {
-    return this.logsRepository.getStats();
+  async getStats() {
+    try {
+      return await this.logsRepository.getStats();
+    } catch (error) {
+      this.logger.error('Failed to fetch log statistics', error);
+      throw error;
+    }
   }
 }

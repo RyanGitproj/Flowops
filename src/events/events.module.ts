@@ -15,7 +15,12 @@ import { FLOWOPS_QUEUE } from './events.constants';
         const redisUrl = config.get('REDIS_URL');
         if (redisUrl) {
           return {
-            redis: redisUrl,
+            redis: {
+              host: new URL(redisUrl).hostname,
+              port: parseInt(new URL(redisUrl).port, 10) || 6379,
+              connectTimeout: 5000,
+              lazyConnect: false,
+            },
             enableReadyCheck: false,
             connection: {
               maxRetriesPerRequest: 3,
@@ -34,6 +39,8 @@ import { FLOWOPS_QUEUE } from './events.constants';
           redis: {
             host: config.get('REDIS_HOST', 'localhost'),
             port: parseInt(config.get('REDIS_PORT', '6379'), 10),
+            connectTimeout: 5000,
+            lazyConnect: false,
           },
           enableReadyCheck: false,
           connection: {

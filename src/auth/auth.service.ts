@@ -19,38 +19,62 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
-    const exists = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
-    if (exists) throw new ConflictException('Email already in use');
+    try {
+      const exists = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      });
+      if (exists) {
+        this.logger.warn(`Registration failed: Email already in use - ${dto.email}`);
+        throw new ConflictException('Email already in use');
+      }
 
-    const hashed = await bcrypt.hash(dto.password, 10);
-    const user = await this.prisma.user.create({
-      data: { email: dto.email, name: dto.name, password: hashed },
-    });
+      const hashed = await bcrypt.hash(dto.password, 10);
+      const user = await this.prisma.user.create({
+        data: { email: dto.email, name: dto.name, password: hashed },
+      });
 
-    this.logger.log(`New user registered: ${user.email}`);
-    const token = this.signToken(user.id, user.email);
-    return { user: this.sanitize(user), token };
+      const token = this.signToken(user.id, user.email);
+      return { user: this.sanitize(user), token };
+    } catch (error) {
+      if (error instanceof ConflictException) throw error;
+      this.logger.error(`Error during registration for ${dto.email}`, error);
+      throw error;
+    }
   }
 
   async login(dto: LoginDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      });
+      if (!user) {
+        this.logger.warn(`Login failed: User not found - ${dto.email}`);
+        throw new UnauthorizedException('Invalid credentials');
+      }
 
-    const valid = await bcrypt.compare(dto.password, user.password);
-    if (!valid) throw new UnauthorizedException('Invalid credentials');
+      const valid = await bcrypt.compare(dto.password, user.password);
+      if (!valid) {
+        this.logger.warn(`Login failed: Invalid password - ${dto.email}`);
+        throw new UnauthorizedException('Invalid credentials');
+      }
 
-    this.logger.log(`User logged in: ${user.email}`);
-    const token = this.signToken(user.id, user.email);
-    return { user: this.sanitize(user), token };
+      const token = this.signToken(user.id, user.email);
+      return { user: this.sanitize(user), token };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) throw error;
+      this.logger.error(`Error during login for ${dto.email}`, error);
+      throw error;
+    }
   }
 
   async me(userId: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    return this.sanitize(user);
+    try {
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      return this.sanitize(user);
+    } catch (error) {
+      this.logger.error(`Error fetching user profile for userId: ${userId}`, error);
+      throw error;
+    }
   }
 
   private signToken(userId: string, email: string) {

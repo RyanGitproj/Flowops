@@ -1,10 +1,14 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
+  
+  try {
+    const app = await NestFactory.create(AppModule);
 
   // ─── Health check endpoint (root level for Render) ────────────────
   const httpAdapter = app.getHttpAdapter();
@@ -23,6 +27,9 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  // ─── Global exception filter ───────────────────────────────
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   // ─── Swagger ───────────────────────────────────────────────
   const config = new DocumentBuilder()
@@ -48,8 +55,12 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
-  console.log(`\n🚀 FlowOps API running at: http://localhost:${port}/api/v1`);
-  console.log(`📚 Swagger docs:           http://localhost:${port}/docs\n`);
+  logger.log(`\n🚀 FlowOps API running at: http://localhost:${port}/api/v1`);
+  logger.log(`📚 Swagger docs:           http://localhost:${port}/docs\n`);
+  } catch (error) {
+    logger.error('❌ Failed to start application', error);
+    process.exit(1);
+  }
 }
 
 bootstrap();

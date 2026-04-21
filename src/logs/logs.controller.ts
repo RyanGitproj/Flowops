@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards, Logger } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -14,6 +14,8 @@ import { LogStatus } from '@prisma/client';
 @UseGuards(JwtAuthGuard)
 @Controller('logs')
 export class LogsController {
+  private readonly logger = new Logger(LogsController.name);
+
   constructor(private logsService: LogsService) {}
 
   @Get()
@@ -30,24 +32,39 @@ export class LogsController {
     required: false,
     enum: LogStatus,
   })
-  findAll(
+  async findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 20,
     @Query('eventId') eventId?: string,
     @Query('status') status?: LogStatus,
   ) {
-    return this.logsService.findAll(+page, +limit, eventId, status);
+    try {
+      return await this.logsService.findAll(+page, +limit, eventId, status);
+    } catch (error) {
+      this.logger.error(`Failed to fetch logs: page=${page} limit=${limit}`, error);
+      throw error;
+    }
   }
 
   @Get('stats')
   @ApiOperation({ summary: 'Get log statistics by status' })
-  getStats() {
-    return this.logsService.getStats();
+  async getStats() {
+    try {
+      return await this.logsService.getStats();
+    } catch (error) {
+      this.logger.error('Failed to fetch log statistics', error);
+      throw error;
+    }
   }
 
   @Get('event/:eventId')
   @ApiOperation({ summary: 'Get all logs for a specific event' })
-  findByEvent(@Param('eventId') eventId: string) {
-    return this.logsService.findByEvent(eventId);
+  async findByEvent(@Param('eventId') eventId: string) {
+    try {
+      return await this.logsService.findByEvent(eventId);
+    } catch (error) {
+      this.logger.error(`Failed to fetch logs for eventId: ${eventId}`, error);
+      throw error;
+    }
   }
 }

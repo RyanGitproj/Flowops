@@ -1,10 +1,11 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import Redis from 'ioredis';
 
 @Controller('health')
 export class HealthController {
+  private readonly logger = new Logger(HealthController.name);
   private redisClient: Redis;
 
   constructor(
@@ -23,8 +24,8 @@ export class HealthController {
     }
 
     // Suppress Redis connection errors (Redis is optional)
-    this.redisClient.on('error', (_err) => {
-      // Silently ignore Redis errors - connection is optional
+    this.redisClient.on('error', (err) => {
+      this.logger.warn(`Redis connection error (Redis is optional): ${err.message}`);
     });
   }
 
@@ -47,6 +48,7 @@ export class HealthController {
     } catch (error) {
       health.services.database = 'error';
       health.status = 'error';
+      this.logger.error('Database health check: FAILED', error);
     }
 
     // Check Redis connection
@@ -56,6 +58,7 @@ export class HealthController {
     } catch (error) {
       health.services.redis = 'error';
       health.status = 'error';
+      this.logger.error('Redis health check: FAILED', error);
     }
 
     // Return appropriate HTTP status code
