@@ -129,3 +129,13 @@ docker compose exec api npm run migrate:deploy
 ## Documentation API
 
 Documentation API interactive disponible à : http://localhost:3000/docs
+
+---
+
+## License
+
+© 2026 Tsioritiana Ryan
+
+Contact : ryan@example.com
+
+Ce projet est fourni à des fins éducatives et de démonstration.
