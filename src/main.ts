@@ -37,6 +37,7 @@ async function bootstrap() {
     .setDescription(
       '⚡ FlowOps – Event-driven backend automation system\n\n' +
         'Architecture: NestJS · PostgreSQL · Redis · BullMQ\n\n' +
+        'Auteur: Tsioritiana Ryan\n\n' +
         '**Auth:** Use `/api/v1/auth/register` then `/api/v1/auth/login`, ' +
         'copy the token and click "Authorize" 🔐',
     )
